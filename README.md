@@ -1,42 +1,36 @@
-# Lead Finder Mini CRM
+# Lead Finder CRM
 
-A web application for finding business leads by scraping public sources.
+Веб-приложение для поиска бизнес-лидов из открытых источников.
 
-## Features
+🌐 **Live Demo:** [lead-finder-crm-production.up.railway.app](https://lead-finder-crm-production.up.railway.app)
 
-- **Streaming results** — leads appear in real-time as they're found
-- **Stop search** — cancel anytime
-- **Quality filtering** — removes junk leads automatically
-- **Phone formatting** — clean +374-XX-XXX-XXX format
-- **CSV export** — download results
+## Возможности
 
-## Sources
+- **Стриминг результатов** — лиды появляются в реальном времени
+- **Остановка поиска** — можно отменить в любой момент
+- **Фильтрация качества** — автоматическое удаление мусорных лидов
+- **Форматирование телефонов** — чистый формат +374-XX-XXX-XXX
+- **Экспорт в CSV** — скачивание результатов
 
-- **spyur.am** — Armenian Yellow Pages (priority for Armenia/Yerevan)
-- **OpenStreetMap Overpass API** — global business data
-- **DuckDuckGo** — web search fallback
-- **Website enrichment** — contact page scraping
+## Источники
 
-## Deploy on Railway
+- **spyur.am** — Армянские Жёлтые Страницы (приоритет для Армении)
+- **OpenStreetMap Overpass API** — глобальные бизнес-данные
+- **DuckDuckGo** — веб-поиск как fallback
 
-1. Go to [railway.app](https://railway.app)
-2. Click "New Project" → "GitHub Repository"
-3. Select `haykohanyans/lead-finder-crm`
-4. Deploy!
-
-## Local Development
+## Локальный запуск
 
 ```bash
 pip install -r requirements.txt
 python app.py
 ```
 
-Open `http://localhost:5000` in browser.
+Открой `http://localhost:5000` в браузере.
 
-## Usage
+## Использование
 
-1. Enter business niche (e.g. "dentist", "bakery")
-2. Enter city (e.g. "Yerevan", "Boston")
-3. Click "Find Leads"
-4. Results stream in real-time
-5. Download as CSV
+1. Введи нишу (напр. "dentist", "bakery")
+2. Введи город (напр. "Yerevan", "Boston")
+3. Нажми "Find Leads"
+4. Результаты появляются в реальном времени
+5. Скачай как CSV
