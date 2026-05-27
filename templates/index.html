@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lead Finder Mini CRM</title>
+  <style>
+    :root {
+      --bg: #0f1117; --surface: #1a1d27; --border: #2a2d3a;
+      --primary: #6c63ff; --primary-hover: #5a52e0;
+      --text: #e4e6eb; --text-muted: #8b8d97;
+      --accent: #00d4aa; --danger: #ff6b6b; --warning: #ffa500;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+    header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 1rem 2rem; display: flex; align-items: center; gap: 0.75rem; }
+    header h1 { font-size: 1.35rem; font-weight: 700; background: linear-gradient(135deg, var(--primary), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    header .logo { width: 32px; height: 32px; background: var(--primary); border-radius: 8px; display: grid; place-items: center; font-weight: 900; font-size: 1.1rem; color: #fff; }
+    main { max-width: 1200px; margin: 2rem auto; padding: 0 1.5rem; }
+    .search-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem 2rem; margin-bottom: 1.5rem; }
+    .search-card h2 { font-size: 1.1rem; margin-bottom: 1rem; color: var(--text-muted); }
+    .form-row { display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-end; }
+    .field { flex: 1; min-width: 200px; }
+    .field label { display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.35rem; }
+    .field input { width: 100%; padding: 0.7rem 1rem; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 1rem; outline: none; transition: border-color 0.2s; }
+    .field input:focus { border-color: var(--primary); }
+    .btn-row { display: flex; gap: 0.5rem; }
+    button#searchBtn { padding: 0.7rem 2rem; background: var(--primary); color: #fff; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: background 0.2s; white-space: nowrap; }
+    button#searchBtn:hover { background: var(--primary-hover); }
+    button#searchBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+    button#stopBtn { padding: 0.7rem 1.5rem; background: var(--danger); color: #fff; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; display: none; }
+    button#stopBtn:hover { filter: brightness(1.1); }
+    .status { margin-top: 1rem; padding: 0.75rem 1rem; border-radius: 8px; font-size: 0.9rem; display: none; }
+    .status.loading { display: block; background: rgba(108,99,255,0.15); color: var(--primary); }
+    .status.error { display: block; background: rgba(255,107,107,0.15); color: var(--danger); }
+    .status.success { display: block; background: rgba(0,212,170,0.15); color: var(--accent); }
+    .status.warning { display: block; background: rgba(255,165,0,0.15); color: var(--warning); }
+    .progress-bar { width: 100%; height: 4px; background: var(--border); border-radius: 2px; margin-top: 0.5rem; overflow: hidden; display: none; }
+    .progress-bar.active { display: block; }
+    .progress-bar .fill { height: 100%; background: var(--primary); width: 0%; transition: width 0.3s; animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.6; } }
+    .results-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; display: none; }
+    .results-header { padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    .results-header h3 { font-size: 1.05rem; }
+    .results-header .count { background: var(--primary); color: #fff; padding: 0.2rem 0.75rem; border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
+    .btn-download { padding: 0.45rem 1rem; background: var(--accent); color: #111; border: none; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; text-decoration: none; display: inline-block; }
+    .btn-download:hover { filter: brightness(1.1); }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; table-layout: fixed; }
+    th { background: var(--bg); text-align: left; padding: 0.65rem 0.8rem; font-weight: 600; color: var(--text-muted); border-bottom: 1px solid var(--border); white-space: nowrap; }
+    th:nth-child(1) { width: 40px; }
+    th:nth-child(2) { width: 25%; }
+    th:nth-child(3) { width: 18%; }
+    th:nth-child(4) { width: 18%; }
+    th:nth-child(5) { width: 15%; }
+    th:nth-child(6) { width: 15%; }
+    td { padding: 0.5rem 0.8rem; border-bottom: 1px solid var(--border); vertical-align: top; word-wrap: break-word; overflow-wrap: break-word; }
+    td.phone-cell { font-family: 'Courier New', monospace; font-size: 0.8rem; white-space: pre-line; line-height: 1.4; }
+    td.name-cell { font-weight: 500; }
+    td a.link { color: var(--primary); text-decoration: none; word-break: break-all; }
+    td a.link:hover { text-decoration: underline; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover { background: rgba(108,99,255,0.05); }
+    .empty-cell { color: var(--text-muted); font-style: italic; font-size: 0.8rem; }
+    .data-missing { color: var(--text-muted); font-size: 0.75rem; }
+    .history-card { margin-top: 2rem; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem 1.5rem; }
+    .history-card h3 { font-size: 1rem; margin-bottom: 0.75rem; color: var(--text-muted); }
+    .history-list { list-style: none; }
+    .history-list li { display: flex; justify-content: space-between; align-items: center; padding: 0.4rem 0; border-bottom: 1px solid var(--border); }
+    .history-list li:last-child { border-bottom: none; }
+    .history-list span { color: var(--text-muted); font-size: 0.85rem; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">LF</div>
+  <h1>Lead Finder Mini CRM</h1>
+</header>
+
+<main>
+  <div class="search-card">
+    <h2>🔍 Find New Leads</h2>
+    <div class="form-row">
+      <div class="field">
+        <label for="niche">Business Niche / Category</label>
+        <input id="niche" type="text" placeholder="e.g. plumber, dentist, bakery" required />
+      </div>
+      <div class="field">
+        <label for="city">City</label>
+        <input id="city" type="text" placeholder="e.g. Chicago, London, Yerevan" required />
+      </div>
+      <div class="btn-row">
+        <button id="searchBtn" onclick="findLeads()">⚡ Find Leads</button>
+        <button id="stopBtn" onclick="stopSearch()">⏹ Stop</button>
+      </div>
+    </div>
+    <div id="status" class="status"></div>
+    <div id="progressBar" class="progress-bar"><div class="fill" id="progressFill"></div></div>
+  </div>
+
+  <div id="resultsCard" class="results-card">
+    <div class="results-header">
+      <h3>Results <span id="resultCount" class="count"></span></h3>
+      <div>
+        <a id="downloadBtn" class="btn-download" href="#">⬇ CSV</a>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Company Name</th>
+            <th>Website</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody id="resultsBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="history-card">
+    <h3>🗂 Past Searches</h3>
+    <ul class="history-list" id="historyList">
+      <li><span>No past searches yet.</span></li>
+    </ul>
+  </div>
+</main>
+
+<script>
+  let currentCsv = "";
+  let abortController = null;
+  let searchActive = false;
+
+  function showStatus(msg, type) {
+    const el = document.getElementById("status");
+    el.className = "status " + type;
+    el.textContent = msg;
+    el.style.display = "block";
+  }
+
+  function setProgress(pct) {
+    const bar = document.getElementById("progressBar");
+    const fill = document.getElementById("progressFill");
+    if (pct > 0) { bar.classList.add("active"); fill.style.width = pct + "%"; }
+    else { bar.classList.remove("active"); fill.style.width = "0%"; }
+  }
+
+  function stopSearch() {
+    if (abortController) { abortController.abort(); abortController = null; }
+    searchActive = false;
+    showStatus("⏹ Search stopped.", "warning");
+    setProgress(0);
+    document.getElementById("searchBtn").disabled = false;
+    document.getElementById("searchBtn").textContent = "⚡ Find Leads";
+    document.getElementById("stopBtn").style.display = "none";
+  }
+
+  async function findLeads() {
+    const niche = document.getElementById("niche").value.trim();
+    const city = document.getElementById("city").value.trim();
+    if (!niche) { showStatus("❌ Please enter a business niche.", "error"); return; }
+    if (!city) { showStatus("❌ Please enter a city.", "error"); return; }
+
+    const btn = document.getElementById("searchBtn");
+    const stopBtn = document.getElementById("stopBtn");
+    btn.disabled = true;
+    btn.textContent = "⏳ Searching…";
+    stopBtn.style.display = "inline-block";
+    searchActive = true;
+    abortController = new AbortController();
+
+    showStatus("🔄 Searching sources…", "loading");
+    setProgress(10);
+
+    // Clear previous results
+    document.getElementById("resultsBody").innerHTML = "";
+    document.getElementById("resultsCard").style.display = "block";
+    document.getElementById("resultCount").textContent = "0 leads";
+
+    try {
+      const resp = await fetch("/search", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ niche, city }),
+        signal: abortController.signal,
+      });
+
+      if (!resp.ok) {
+        const data = await resp.json().catch(() => ({}));
+        showStatus("❌ " + (data.error || "Server error"), "error");
+        return;
+      }
+
+      const reader = resp.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let allLeads = [];
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop();
+        for (const line of lines) {
+          if (!line.trim()) continue;
+          try {
+            const msg = JSON.parse(line);
+            if (msg.type === "progress") {
+              showStatus("🔄 " + msg.text, "loading");
+              setProgress(msg.pct || 20);
+            } else if (msg.type === "lead") {
+              allLeads.push(msg.lead);
+              appendRow(allLeads.length, msg.lead);
+              document.getElementById("resultCount").textContent = allLeads.length + " leads";
+            } else if (msg.type === "done") {
+              allLeads = msg.leads || allLeads;
+              renderAll(allLeads);
+              currentCsv = msg.csv_file;
+              document.getElementById("downloadBtn").href = "/download/" + encodeURIComponent(msg.csv_file);
+              showStatus("✅ Found " + allLeads.length + " leads! CSV saved.", "success");
+              setProgress(100);
+            } else if (msg.type === "error") {
+              showStatus("❌ " + msg.text, "error");
+            }
+          } catch(e) { /* skip bad lines */ }
+        }
+      }
+
+    } catch (err) {
+      if (err.name === "AbortError") return; // already handled
+      showStatus("❌ Network error: " + err.message, "error");
+    } finally {
+      searchActive = false;
+      btn.disabled = false;
+      btn.textContent = "⚡ Find Leads";
+      stopBtn.style.display = "none";
+      setProgress(0);
+      loadHistory();
+    }
+  }
+
+  function formatPhones(phoneStr) {
+    if (!phoneStr) return '<span class="empty-cell">—</span>';
+    // Split by comma, show each on new line
+    const parts = phoneStr.split(",").map(p => p.trim()).filter(p => p);
+    return parts.map(p => esc(p)).join("<br>");
+  }
+
+  function appendRow(num, lead) {
+    const tbody = document.getElementById("resultsBody");
+    const tr = document.createElement("tr");
+    const webDisplay = lead.website
+      ? '<a class="link" href="' + esc(lead.website) + '" target="_blank">' + esc(trunc(lead.website.replace(/^https?:\/\/(www\.)?/, ''), 25)) + '</a>'
+      : '<span class="data-missing">No website</span>';
+    const emailDisplay = lead.email
+      ? esc(lead.email)
+      : '<span class="data-missing">No email</span>';
+    const phoneDisplay = formatPhones(lead.phone);
+    const notesDisplay = lead.notes
+      ? esc(trunc(lead.notes, 80))
+      : '<span class="data-missing">—</span>';
+    tr.innerHTML =
+      '<td>' + num + '</td>' +
+      '<td class="name-cell">' + esc(lead.company_name) + '</td>' +
+      '<td>' + webDisplay + '</td>' +
+      '<td>' + emailDisplay + '</td>' +
+      '<td class="phone-cell">' + phoneDisplay + '</td>' +
+      '<td>' + notesDisplay + '</td>';
+    tbody.appendChild(tr);
+  }
+
+  function renderAll(leads) {
+    const tbody = document.getElementById("resultsBody");
+    tbody.innerHTML = "";
+    leads.forEach((l, i) => appendRow(i + 1, l));
+    document.getElementById("resultCount").textContent = leads.length + " leads";
+  }
+
+  function esc(s) {
+    const d = document.createElement("div");
+    d.textContent = s;
+    return d.innerHTML;
+  }
+
+  function trunc(s, n) { return s.length > n ? s.slice(0, n) + "…" : s; }
+
+  async function loadHistory() {
+    try {
+      const resp = await fetch("/history");
+      const files = await resp.json();
+      const list = document.getElementById("historyList");
+      if (!files.length) { list.innerHTML = '<li><span>No past searches yet.</span></li>'; return; }
+      list.innerHTML = files.map(f =>
+        '<li>' + esc(f) + ' <a class="btn-download" style="padding:0.2rem 0.6rem;font-size:0.75rem" href="/download/' + encodeURIComponent(f) + '">⬇</a></li>'
+      ).join("");
+    } catch { /* silent */ }
+  }
+
+  document.addEventListener("keydown", e => { if (e.key === "Enter" && !searchActive) findLeads(); });
+  loadHistory();
+</script>
+</body>
+</html>

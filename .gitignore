@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+venv/
+env/
+.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project specific
+data/*.csv
+data/app.log
+*.db
+
+# Keys and secrets (NEVER commit these)
+*.pem
+*.key
+settings_local.py
+secrets.py
