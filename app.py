@@ -316,7 +316,7 @@ def enrich_site(url):
                         p2 = extract_phones(r2.text)
                         if e2: info["emails"] = e2[:5]
                         if p2: info["phones"] = p2[:3]
-                    except: pass
+                    except Exception: pass
                     break
     except Exception as e:
         log.debug("enrich %s: %s", url, e)
@@ -340,6 +340,14 @@ def list_csv():
     return sorted([f.name for f in DATA_DIR.glob("*.csv") if f.name!="app.log"], reverse=True)
 
 # ── Routes ──────────────────────────────────────────────────────────────
+
+@app.after_request
+def set_security_headers(response):
+    response.headers["Content-Security-Policy"] = "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'"
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    return response
 
 @app.route("/")
 def index():
@@ -401,11 +409,10 @@ def search():
 
             # 4. Enrich
             yield from emit("progress", text="Enriching websites…", pct=80)
-            to_enrich = [l for l in leads if (not l["email"] or not l["phone"]) and l["website"]][:10]
+            to_enrich = [(i, l) for i, l in enumerate(leads) if (not l["email"] or not l["phone"]) and l["website"]][:10]
             if to_enrich:
-                idx_map = {l: i for i, l in enumerate(leads) if l in to_enrich}
                 with concurrent.futures.ThreadPoolExecutor(max_workers=3) as ex:
-                    futs = {ex.submit(enrich_site, l["website"]): i for l, i in idx_map.items()}
+                    futs = {ex.submit(enrich_site, l["website"]): i for i, l in to_enrich}
                     for f in concurrent.futures.as_completed(futs, timeout=45):
                         try:
                             extra = f.result()
@@ -413,7 +420,7 @@ def search():
                             if extra["emails"] and not leads[li]["email"]: leads[li]["email"] = ", ".join(extra["emails"])
                             if extra["phones"] and not leads[li]["phone"]: leads[li]["phone"] = clean_phones(", ".join(extra["phones"]))
                             if extra["notes"] and not leads[li]["notes"]: leads[li]["notes"] = extra["notes"]
-                        except: pass
+                        except Exception: pass
 
             leads.sort(key=quality_score, reverse=True)
             leads = leads[:50]

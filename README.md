@@ -2,7 +2,7 @@
 
 Веб-приложение для поиска бизнес-лидов из открытых источников.
 
-🌐 **Live Demo:** [lead-finder-crm-production.up.railway.app](https://lead-finder-crm-production.up.railway.app)
+🌐 **Live Demo:** [lead-finder-production-2ac6.up.railway.app](https://lead-finder-production-2ac6.up.railway.app)
 
 ## Возможности
 
