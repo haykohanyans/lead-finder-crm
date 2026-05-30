@@ -28,3 +28,4 @@ data/app.log
 *.key
 settings_local.py
 secrets.py
+upload_to_hf.py

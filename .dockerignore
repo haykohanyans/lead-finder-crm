@@ -1,0 +1,8 @@
+data/
+.git
+__pycache__
+*.pyc
+*.csv
+app.log
+.env
+upload_to_hf.py
